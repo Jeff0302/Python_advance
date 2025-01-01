@@ -97,7 +97,7 @@ Sub add()
     a = Worksheets(1).Range("A2").Value
     b = Worksheets(1).Range("B2").Value
     RunPython "import test;test.add(" & a & "," & b & ")"
-    
+
 End Sub
 
 ```
@@ -408,7 +408,7 @@ if __name__ == '__main__':
 
 + 創建子進程會對主進程資源進行拷貝，也就是說子進程是主進程的一個副本，所以進程之間不會共享全局變量，因為操作的是不同進程裡的全局變量，只是不同進程裡的全局變量名字相同而已。
 
-![image-20241229205441046](C:\Users\jianf\AppData\Roaming\Typora\typora-user-images\image-20241229205441046.png)
+![image-20241229205441046](C:\Users\AIROHA\Jeff\Python\advance\Python_advance\img\進程不共享全局變量.png)
 
 ```python
 import multiprocessing as m
@@ -488,6 +488,361 @@ if __name__ == '__main__':
 
 
 
+範例: <span alt="solid"> Python04_multiprocessing</span>
+
+---
+
+# 多線程Thread
+
+## 1. 線程的概念
+
+>  線程是進程中執行代碼的一個分支。每個執行分支(線程)要想執行代碼需要CPU進行調度，也就是說線程是CPU調度的基本單位，
+>
+>每個進程至少有一個線程，而這個線程我們通常稱為主線程。
+
+
+
+## 2. 線程的作用: 多線程可以完成多任務
+
+![image-20241229220859919](C:\Users\AIROHA\Jeff\Python\advance\Python_advance\img\多線程效果圖.PNG)
+
+## 3. 進程和線程的關係對比
+
+### 3-1. 線程是依附在進程裡的，沒有進程就沒有線程。
+
+### 3-2. 一個進程默認提供一條線程，進程可以創建多個線程。
+
+
+
+## 4. 進程和線程的區別對比
+
+### 4-1. 進程之間不共享全局變量。
+
+### 4-2. 線程之間共享全局變量，但需要注意資源競爭的問題，解決辦法:互斥鎖或線程同步。
+
+### 4-3. 創建進程的資源開銷要比創建線程的資源開銷大。
+
+### 4-4. 進程是操作系統資源分配的基本單位，線程是CPU調度的基本單位。
+
+### 4-5. 線程不能獨立執行，必須依存在進程中。
+
+### 4-6. 多進程開發比單進程多線程開發穩定性要強。
+
+## 5. 進程線程優缺點
+
+### 5-1. 進程優缺點: 可以使用多核，資源開銷大
+
+### 5-2. 線程優缺點: 資源開銷小，不能使用多核
+
+
+
+## 6. 多線程導入`threading`模塊
+
+## 7.  線程類`Thread`參數說明: 
+
+###  7-1. `Thread(group=None, target=None, name=None, args=(), kwargs={})`
+
++ group: 線程組，目前只能使用None。
++ target: 指定的任務目標。
++ name: 線程名字。一般不用設置。
++ args:  以元組方式給任務傳參。
++ kwargs:  字典方式給任務傳參。
+
+### 7-2. 啟動線程`start()`
+
+
+
+## 8. 多線程任務代碼
+
+### 8-1. 多線程使用
+
+```python
+# 導入多線程模塊
+import threading
+import time, os
+
+def dance():
+    for i in range(10):
+        print(f'[{threading.current_thread()}] 跳舞中~~~')
+        time.sleep(0.2)
+
+def sing():
+    for i in range(10):
+        print(f'[{threading.current_thread()}] 唱歌中~~~')
+        time.sleep(0.2)
+
+
+if __name__ == '__main__':
+    # 創建子線程
+    t1 = threading.Thread(target=dance)
+    t2 = threading.Thread(target=sing)
+    # 啟動子線程
+    t1.start()
+    t2.start()
+    print(f'[{threading.current_thread()}]Main over')
+```
+
+
+
+### 8-2. 多線程帶有參數任務
+
+```python
+# 導入多線程模塊
+import threading
+import time, os
+
+def dance(name: str, dance_name: str):
+    for i in range(10):
+        print(f'[{threading.current_thread()}] {name}跳{dance_name}中~~~')
+        time.sleep(0.2)
+
+def sing(name: str, song_name: str):
+    for i in range(10):
+        print(f'[{threading.current_thread()}] {name}唱{song_name}中~~~')
+        time.sleep(0.2)
+
+
+if __name__ == '__main__':
+    # 創建子線程
+    # 以元組方式傳參，要保證元組裡面元素的順序和函數的參數順序一致。
+    t1 = threading.Thread(target=dance, args=('Jeff','街舞'))
+    # 以字典方式傳參，要保證字典裡面的key名和函數參數名相同。
+    t2 = threading.Thread(target=sing, kwargs={'name':'Amy', 'song_name':'三天三夜'})
+    # 啟動子線程
+    t1.start()
+    t2.start()
+    print(f'[{threading.current_thread()}]Main over')
+```
+
+
+
+### 8-3. 線程的注意點
+
++ 線程之間執行是無序的。
+
+```python
+# 導入多線程模塊
+import threading
+import time, os
+
+def task(number: int):
+    time.sleep(0.5)
+    print(f'任務{number}執行了\n')
+    
+
+if __name__ == '__main__':
+    # 循環創建大量線程，測試線程之間是否無序
+    for i in range(20):
+        sub_thread = threading.Thread(target=task, args=(i,))
+        # 啟動子線程對應的任務
+        sub_thread.start()
+
+    # 進程之間執行是無序的，具體哪個線程先執行由cpu調度決定的
+```
+
++ 主線程會等待所以子線程完成後才退出。
+
+```python
+# 導入多線程模塊
+import threading
+import time, os
+
+def task():
+    while True:
+        print(f'任務執行中~~~')
+        time.sleep(0.3)
+    
+
+if __name__ == '__main__':
+    # 創建子線程
+    sub_thread = threading.Thread(target=task)
+    # 啟動子線程對應的任務
+    sub_thread.daemon = True
+    sub_thread.start()
+
+    time.sleep(1)
+    print('主線程結束')
+
+    # 結論: 主線程會等待子線程結束後才退出
+    # 解決辦法: 將子線程設置為守護主線程。
+
+```
+
++ 線程之間共享全局變量。
+
+```python
+# 導入多線程模塊
+import threading
+import time, os
+
+# 定義全局變量
+g_list = []
+
+def add_data(number: int):
+    time.sleep(3)
+    g_list.append(number)
+
+
+def read_data():
+    time.sleep(2)
+    print(g_list)
+
+if __name__ == '__main__':
+    # 創建子線程
+    sub_thread1 = threading.Thread(target=add_data, args=(1,))
+    sub_thread2 = threading.Thread(target=read_data,)
+    
+    sub_thread1.start()
+    # 當前線程等待sub_thread1線程結束才繼續執行
+    sub_thread1.join()
+    sub_thread2.start()
+
+    print('主線程結束')
+
+    # 結論: 線程之間共享全局變量
+```
+
++ 線程之間共享全局變量數據出現錯誤問題。
+
+​	\- 線程同步: 保證同一時刻只能有一個線程去操作全局變量。同步就是協同步調，按預定的先後次序運行。
+
+![image-20250101204921053](C:\Users\AIROHA\Jeff\Python\advance\Python_advance\img\線程間共享全局變量錯誤問題.PNG)
+
+```python
+import threading
+
+g_num = 0
+
+# 循環100萬次執行的任務
+def task1():
+    for i in range(1000000):
+        global g_num    # 表示要聲明修改全局變量的內存地址
+        # 每循環一次給全局變量+1
+        g_num += 1
+    # 代碼執行到此，說明數據計算完成
+    print(f'task1: {g_num}')
+
+# 循環100萬次執行的任務
+def task2():
+    for i in range(1000000):
+        global g_num    # 表示要聲明修改全局變量的內存地址
+        # 每循環一次給全局變量+1
+        g_num += 1
+    # 代碼執行到此，說明數據計算完成
+    print(f'task2: {g_num}')
+
+
+if __name__ == '__main__':
+    # 創建兩個子線程
+    first_thread = threading.Thread(target=task1)
+    second_thread = threading.Thread(target=task2)
+    # 啟動線程執行任務
+    first_thread.start()
+    # 線程等待，讓第一個線程先執行，然後再讓第二個線程在執行，保證數據不會有問題。
+    first_thread.join()
+    second_thread.start()
+```
+
+
+
+### 8-4. 互斥鎖的概念: 對共享數據進行鎖定，保證同一時刻只能有一個線程去操作
+
+>  互斥鎖是多個線程一起去搶，搶到鎖的線程先執行，沒有搶到鎖的線程需要等待，等互斥鎖使用完釋放後，其他線程再去搶這個鎖。
+
+
+
++ 互斥鎖使用
+
+  \- 創建鎖 `mutex = threading.Lock()`
+
+  \- 上鎖 `mutex.acquire()`
+
+  \- 釋放鎖 `mutex.release()`
+
+  
+
+```python
+import threading
+
+g_num = 0
+
+ # 創建互斥鎖
+mutex = threading.Lock()
+
+# 循環100萬次執行的任務
+def task1():
+    # 上鎖
+    mutex.acquire()
+    for i in range(1000000):
+        global g_num    # 表示要聲明修改全局變量的內存地址
+        # 每循環一次給全局變量+1
+        g_num += 1
+    # 代碼執行到此，說明數據計算完成
+    print(f'task1: {g_num}')
+    # 釋放鎖
+    mutex.release()
+    
+
+# 循環100萬次執行的任務
+def task2():
+    # 上鎖
+    mutex.acquire()
+    for i in range(1000000):
+        global g_num    # 表示要聲明修改全局變量的內存地址
+        # 每循環一次給全局變量+1  
+        g_num += 1
+    # 代碼執行到此，說明數據計算完成
+    print(f'task2: {g_num}')
+    # 釋放鎖
+    mutex.release()
+    
+
+if __name__ == '__main__':
+    # 創建兩個子線程
+    first_thread = threading.Thread(target=task1)
+    second_thread = threading.Thread(target=task2)
+
+    # 啟動線程執行任務
+    first_thread.start()
+    second_thread.start()
+
+    # 互斥鎖可以保證同一時刻只有一個線程執行，能夠保證全局變量的數據沒有問題。
+    # 線程等待和互斥鎖都是把多任務變成單任務去執行，保證了數據的準確性，但執行性能會下降。
+```
+
+
+
+### 8-5. 死鎖的概念: 一直等待對方釋放鎖的情景就是死鎖
+
+```python
+import threading
+
+g_list = [1, 2, 3]
+
+ # 創建互斥鎖
+mutex = threading.Lock()
+
+
+def get_value(index: int):
+    mutex.acquire()
+    if index>=len(g_list):
+        print(f'下標越界index= {index}')
+        # 沒有release會造成死鎖
+        mutex.release()
+        return
+    
+    print(g_list[index])
+    
+    mutex.release()
+    
+
+if __name__ == '__main__':
+    # 創建大量線程，同時執行根據下標取值任務
+    for i in range(10):
+        sub_thread = threading.Thread(target=get_value, args=(i,))
+        sub_thread.start()
+
+```
 
 
 
@@ -497,8 +852,9 @@ if __name__ == '__main__':
 
 
 
+範例: <span alt="solid"> Python05_threading</span>
 
 
 
-
+---
 
