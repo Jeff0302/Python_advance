@@ -628,7 +628,7 @@ import time, os
 def task(number: int):
     time.sleep(0.5)
     print(f'任務{number}執行了\n')
-    
+
 
 if __name__ == '__main__':
     # 循環創建大量線程，測試線程之間是否無序
@@ -651,7 +651,7 @@ def task():
     while True:
         print(f'任務執行中~~~')
         time.sleep(0.3)
-    
+
 
 if __name__ == '__main__':
     # 創建子線程
@@ -691,7 +691,7 @@ if __name__ == '__main__':
     # 創建子線程
     sub_thread1 = threading.Thread(target=add_data, args=(1,))
     sub_thread2 = threading.Thread(target=read_data,)
-    
+
     sub_thread1.start()
     # 當前線程等待sub_thread1線程結束才繼續執行
     sub_thread1.join()
@@ -781,7 +781,7 @@ def task1():
     print(f'task1: {g_num}')
     # 釋放鎖
     mutex.release()
-    
+
 
 # 循環100萬次執行的任務
 def task2():
@@ -795,7 +795,7 @@ def task2():
     print(f'task2: {g_num}')
     # 釋放鎖
     mutex.release()
-    
+
 
 if __name__ == '__main__':
     # 創建兩個子線程
@@ -830,11 +830,10 @@ def get_value(index: int):
         # 沒有release會造成死鎖
         mutex.release()
         return
-    
+
     print(g_list[index])
-    
+
     mutex.release()
-    
 
 if __name__ == '__main__':
     # 創建大量線程，同時執行根據下標取值任務
@@ -932,30 +931,226 @@ if __name__ == '__main__':
 
 ### 6-1. 導入`socket模塊`
 
-### 6-2. 創建客戶端socket對象`socket.socket(AddressFamily, Type)`
+### 6-2. 創建客戶端socket對象`socket.socket(family, type)`
 
-​	\- AddressFamily表示IP2地址類型，分為IPv4和IPv6
+​	\- family表示IP地址類型，分為IP4和IP6
 
 ​	\- Type表示傳輸協議類型
 
-​	方法說明:
+### 6-3.`connect((host,port))`表示和服務器端套接建立連接
 
-​	`connect(host, port)`表示和服務器端套接建立連接，host表示服務器ip地址，port表示應用程序端口號。
+​         - host表示服務器ip地址，port表示應用程序端口號。
 
-​	`send(data)`表示發送數據，data是二進制數據。
+### 6-4.`send(data)`表示發送數據，data是二進制數據
 
-​	`recv(buffersize)`表示接收數據，buffersize是每次接收數據長度。
+### 6-5.`recv(buffersize)`表示接收數據，buffersize是每次接收數據的最大字節數
 
 
 
 ```python
+# 導入socket模塊
+import socket
+
+if __name__ == '__main__':
+    #1. 創建客戶端套接字
+    '''
+    參數
+        family = socket.AF_INET, 表示IP4地址
+        type = socket.SOCK_STREAM, 表示TCP協議 (socket.SOCK_DGRAM為UDP協議)
+    '''
+    tcp_client_socket  = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+
+    #2. 和服務端套接字連接
+    '''
+    connect(address)
+    參數
+        address為元組 (str, port_num)
+        其中str為ip地址, port_num為端口號
+    '''
+    tcp_client_socket.connect(('127.0.0.1', 2345))
+
+    #3. 發送數據
+    '''
+    send(data: bytes) 
+    參數
+        data為發送數據
+    '''
+
+    send_content = '我是客戶端Jeff'.encode('utf-8')
+    tcp_client_socket.send(send_content)
+
+    #4. 接收數據
+    '''
+    recv(bufsize) 
+    參數
+        bufsize為每次接收最大字節數
+    '''
+    received_data = tcp_client_socket.recv(1024)
+    print(received_data.decode('utf-8'))
+
+    #5. 關閉連接
+    tcp_client_socket.close()
 ```
 
 
 
-
-
-
-
 ## 7. TCP服務端程序開發
+
+### 6-1. 導入`socket模塊`
+
+### 6-2. 創建客戶端socket對象`socket.socket(family, type)`
+
+​	\- family表示IP地址類型，分為IP4和IP6
+
+​	\- Type表示傳輸協議類型
+
+### 6-3. 綁定服務定端口 `bind((address, port))`
+
+​	- 一般address不指定，表示本機的ip地址皆可
+
+### 6-4. 設置監聽`listen(backlog)`, 最大等待建立連接的個數
+
+### 6-5. 等待客戶端連接`accept()`，返回值包含一個socket對象用來和客戶端發送數據
+
+### 6-6. `send(data)`表示發送數據，data是二進制數據
+
+### 6-7. `recv(buffersize)`表示接收數據，buffersize是每次接收數據的最大字節數
+
+![image-20250101204921053](D:\OneDrive\Python\advance\img\socket服務器端行為.png)
+
+```python
+# 導入socket模塊
+import socket
+
+if __name__ == '__main__':
+    #1. 創建服務端socket套接字
+    # 服務端套接字用ip4+TCP協議傳輸
+    tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+
+    #2. 將服務器在指定端口開啟(綁定端口)
+    '''
+        bind(address)
+        參數
+            address為元組(str: address, int: 端口號)
+            *ip地址一般不指定，表示本機任何一個ip地址皆可
+    '''
+    tcp_server_socket.bind(('', 2000))
+
+    #3. 設置監聽
+    '''
+        listen(backlog)表示設置監聽，backlog參數表示最大等待建立連接的個數。
+    '''
+    tcp_server_socket.listen(128)
+    # 4. 等待接受客戶連接請求
+    '''
+        accept()表示等待接收客戶端連接請求，返回值為一個socket對象用來和客戶端收發數據
+        
+        注意點: 每次當客戶端和服務器建立連接成功都會返回一個新的套接字
+        tcp_server_socket只負責等待接受客戶端的連接請求，收發數據不使用該套接字
+    
+    '''
+    new_client, ip_port = tcp_server_socket.accept()
+    print(new_client)
+    print(f'客戶端ip={ip_port[0]}, 端口={ip_port[1]}')
+
+    #5. 接收客戶端數據
+    received_data = new_client.recv(1024)
+    print(received_data.decode('utf-8'))
+
+    #6. 發送數據給客戶端
+    send_data = '收到數據了~~'.encode('utf-8')
+    new_client.send(send_data)
+    
+    # 關閉服務於客戶端的套接字，表示和客戶端終止通信
+    new_client.close()
+
+    #7. 關閉服務端socket套接字
+    tcp_server_socket.close()
+
+```
+
+
+
+### 6-8. `setsockopt(level, opt_name, value)` 設置套接字的選項
+
+​	\- **level**: 這個參數指定了套接字選項的協議級別。通常使用 `socket.SOL_SOCKET` 來表示套接字層級的選項，也可以使用 `socket.IPPROTO_TCP` 表示 TCP 		      協議級別的選項。
+
+​	\- **optname**: 這個參數指定了具體的套接字選項名稱。常見的選項包括 `socket.SO_REUSEADDR`（允許重用本地地址）和 `socket.SO_KEEPALIVE`（保持連
+
+​                      接活著）。
+
+​	\- **value**: 這個參數設置所選擇的選項的值。它可以是布爾值、整數或是字節數組，取決於選項的類型。
+
+
+
+##  8. TCP服務端程序開發多任務版
+
+
+
+```python
+import socket
+import threading
+
+
+def handle_client_request(socket_instance: socket.socket, ip):
+
+     while True:
+        result = socket_instance.recv(1024)
+        if result:
+            received_data = result.decode('utf-8')
+            print(f'[{ip}][{threading.current_thread()}] 客戶端請求 {received_data}')
+
+            socket_instance.send(f'回應客戶端請求{received_data}'.encode('utf-8'))
+
+        else:
+            print(f'[{ip}][{threading.current_thread()}] 客戶端退出')
+            break
+
+	    socket_instance.close()
+
+
+if __name__ == '__main__':
+    # 建立IP4+TCP服務端套接字
+    tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+
+    # 設置socket option, 設置服務端程序退出端口立即釋放
+    tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,True)
+
+    # 綁定服務器端口
+    tcp_server_socket.bind(('', 8888))
+
+    # 設置監聽(排隊等待連接的最大個數)
+    tcp_server_socket.listen(128)
+
+    # accept()函數循環等待客戶端連接
+    # tcp_server_socket用來負責等待客戶端的連接需求，收發數據不使用該套接字
+    while True:
+        new_client_socket, ip_port = tcp_server_socket.accept()
+
+        print(f'{ip_port} 已連接')
+        # 創建子線程用來與客戶端收發數據
+        t = threading.Thread(target=handle_client_request , args=(new_client_socket, ip_port))
+        # 設置守護進程(主線程結束，子線程立即釋放)
+        t.daemon = True
+        t.start()
+
+
+    # 關閉服務器，通常服務器不關閉的
+    # tcp_server_socket.close()
+
+```
+
+
+
+[參考資料] https://gist.github.com/kevinkindom/108ffd675cb9253f8f71
+
+
+
+範例: <span alt="solid"> Python06_網路編程</span>
+
+
+
+---
+
+
 
