@@ -996,25 +996,25 @@ if __name__ == '__main__':
 
 ## 7. TCP服務端程序開發
 
-### 6-1. 導入`socket模塊`
+### 7-1. 導入`socket模塊`
 
-### 6-2. 創建客戶端socket對象`socket.socket(family, type)`
+### 7-2. 創建客戶端socket對象`socket.socket(family, type)`
 
 ​	\- family表示IP地址類型，分為IP4和IP6
 
 ​	\- Type表示傳輸協議類型
 
-### 6-3. 綁定服務定端口 `bind((address, port))`
+### 7-3. 綁定服務定端口 `bind((address, port))`
 
 ​	- 一般address不指定，表示本機的ip地址皆可
 
-### 6-4. 設置監聽`listen(backlog)`, 最大等待建立連接的個數
+### 7-4. 設置監聽`listen(backlog)`, 最大等待建立連接的個數
 
-### 6-5. 等待客戶端連接`accept()`，返回值包含一個socket對象用來和客戶端發送數據
+### 7-5. 等待客戶端連接`accept()`，返回值包含一個socket對象用來和客戶端發送數據
 
-### 6-6. `send(data)`表示發送數據，data是二進制數據
+### 7-6. `send(data)`表示發送數據，data是二進制數據
 
-### 6-7. `recv(buffersize)`表示接收數據，buffersize是每次接收數據的最大字節數
+### 7-7. `recv(buffersize)`表示接收數據，buffersize是每次接收數據的最大字節數
 
 ![image-20250101204921053](D:\OneDrive\Python\advance\img\socket服務器端行為.png)
 
@@ -1071,7 +1071,7 @@ if __name__ == '__main__':
 
 
 
-### 6-8. `setsockopt(level, opt_name, value)` 設置套接字的選項
+### 7-8. `setsockopt(level, opt_name, value)` 設置套接字的選項
 
 ​	\- **level**: 這個參數指定了套接字選項的協議級別。通常使用 `socket.SOL_SOCKET` 來表示套接字層級的選項，也可以使用 `socket.IPPROTO_TCP` 表示 TCP 		      協議級別的選項。
 
@@ -1106,7 +1106,7 @@ def handle_client_request(socket_instance: socket.socket, ip):
             print(f'[{ip}][{threading.current_thread()}] 客戶端退出')
             break
 
-	    socket_instance.close()
+	socket_instance.close()
 
 
 if __name__ == '__main__':
@@ -1147,6 +1147,501 @@ if __name__ == '__main__':
 
 
 範例: <span alt="solid"> Python06_網路編程</span>
+
+
+
+---
+
+# HTTP協議與靜態Web服務器
+
+## 1. HTTP(HyperText Transfer Protocol)協議介紹
+
++ 超文本是超級文本縮寫，是指超越文本限制或超鏈接，例如: 圖片、音樂、視頻、超鏈接等等都屬於超文本
++ 傳輸HTTP協議格式的數據是基於TCP傳輸協議的，發送數據之前需要先建立連接。
+
+### 1-1. HTTP協議規定了瀏覽器和Web服務器通信數據的格式
+
+### 1-2. 瀏覽器訪問Web服務器過程
+
+![image-20250101204921053](D:\OneDrive\Python\advance\img\瀏覽器訪問Web服務器過程.png)
+
+## 2. URL(Uniform Resource Locator)
+
++ URL的意思是統一資源定位符，通俗理解就是網路資源地址，也就是我們常說的網址。
+
+### 2-1. URL的組成
+
++ URL的樣子:
+
+  `https:://news.163.com/18/1122/10/E178J2O4000189FH.html`
+
+  URL的組成部分:
+
+  1. 協議部分: `https://`、`http://`、`ftp://`
+  2. 域名部分: `news.163.com`
+  3. 資源路徑部分: `/18/1122/10/E178J2O4000189FH.html`
+
+  
+
+## 3. 查看HTTP協議的通信過程
+
+\- https://www.bilibili.com/video/BV1mQ4y1w77z?spm_id_from=333.788.player.switch&vd_source=9d20112d20ce6051ab07ff8b4200f514
+
+
+
+## 4. HTTP請求報文, 瀏覽器發送給Web服務器的數據
+
+### 4-1. 常見請求報文`GET`, `POST`
+
++ `GET`: 獲取Web服務器數據
++ `POST`: 向Web服務器提交數據
+
+### 4-2. HTTP GET請求報文格式
+
+>請求行\r\n
+>
+>請求頭\r\n
+>
+>空行\r\n
+>
+>提示: 每項信息之間都需要一個\r\n，是http協議規定
+
+
+
+### 4-3. HTTP POST請求報文格式
+
+>請求行\r\n
+>
+>請求頭\r\n
+>
+>空行\r\n
+>
+>請求体\r\n
+>
+>提示: 請求体就是給服務器發送的數據
+
+![image-20250101204921053](D:\OneDrive\Python\advance\img\HTTP GET POST.png)
+
+## 5. HTTP響應報文, 服務器給瀏覽器發送的數據
+
+### 5-1. HTTP響應報文格式
+
+>響應行\r\n
+>
+>響應頭\r\n
+>
+>空行\r\n
+>
+>響應体\r\n
+>
+>提示: 響應体就是真正意義上給瀏覽器解析使用的數據
+
+
+
+### 5-2. HTTP狀態碼介紹
+
+| 狀態碼 | 說明                             |
+| ------ | :------------------------------- |
+| 200    | 請求成功                         |
+| 307    | 重定向                           |
+| 400    | 錯誤的請求，請求地址或者參數有誤 |
+| 404    | 請求資源在服務器不存在           |
+| 500    | 服務器內部源代碼出錯誤           |
+
+
+
+## 6. Python搭建靜態Web服務器
+
+### 6-1. 什麼是靜態服務器
+
+​	可以為發出請求的瀏覽器提供靜態文檔的程序。平時我們瀏覽百度新聞數據的時候，每天的新聞數據都會發生變化，那訪問的頁面就是動態的，而靜態指的就是頁面數據不會發生變化。
+
+### 6-2.  如何搭建Python自帶的靜態Web服務器: `python -m http.server 端口號`
+
+```shell
+python -m http.server 端口號
+```
+
+
+
+### 6-3. 靜態服務器-返回固定頁面數據
+
++ 接收http request後, 返回http response(固定response)
+
+```python
+import socket
+
+def handle_client_request(client_socket: socket.socket): 
+
+    result = client_socket.recv(4096)
+    if result:
+        http_request = result.decode('utf-8')
+        # 打印客戶端請求報文
+        print(f'-------HTTP Request-------+\n{http_request}')
+            
+        # 返回固定頁面
+        with open('./static/index.html','r') as file:
+                content = file.read()
+        
+        # 響應行
+        response_line =  'HTTP/1.1 200 OK\r\n'
+        # 響應頭
+        response_header = 'Server: PWS/1.0\r\n'
+        # 響應體
+        response_body = content
+        
+        send_data = response_line + response_header + '\r\n' + response_body
+
+        # 打印客戶端響應報文
+        print(f'-------HTTP response-------+\n{send_data}')
+        
+        client_socket.send(send_data.encode('utf-8'))
+    
+    client_socket.close()  
+
+
+
+if __name__=='__main__':
+    # 使用IP4 + TCP傳輸協議
+    tcp_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+
+    # 設置套接字關閉端口立即釋放
+    tcp_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+
+    # 綁定服務器端口號
+    tcp_server_socket.bind(("", 8888))
+
+    # 設置監聽(排隊等待連接的最大數量)
+    tcp_server_socket.listen(128)
+
+```
+
+
+
+### 6-4. 靜態服務器-返回指定頁面數據
+
++ 接收http request後, 返回http response(根據http request返回)
++ 如果不指定頁面，則返回主頁面
++ `使用二進制方式打開請求文件，用來兼容圖片等文件`
+
+```python
+import socket
+
+
+def handle_client_request(curr_socket: socket.socket):
+
+    result = curr_socket.recv(4096)
+    if result:
+        http_request = result.decode('utf-8')
+        print(http_request)
+        # 獲取請求的頁面
+        # 設置最大分割為2，只split到第2的空格
+        request_page = http_request.split(' ', maxsplit=2)[1]
+        
+        # 如果不指定頁面返回主頁面
+        if request_page == '/':
+            request_page = '/index.html'
+        
+        print(f'請求頁面{request_page}')
+
+        # ***為了兼容圖片格式以二進制形式打開文件***
+        with open('./static' + request_page, 'rb') as file_name:
+            content = file_name.read()
+
+        # 返回http response
+        response_line = 'HTTP/1.1 200 OK\r\n'
+
+        response_header = 'Server: PWS/1.0\r\n'
+
+        response_body = content
+
+        # 二進制無法和字符串拼接，須將字符串轉成bytes二進制形式
+        send_data = (response_line + response_header + '\r\n').encode('utf-8') + response_body
+
+        curr_socket.send(send_data)
+
+    
+    curr_socket.close()
+
+
+if __name__ == '__main__':
+    # 設置ip4 + TCP傳輸協議
+    http_server_socket = socket.socket(family=socket.AF_INET,  type=socket.SOCK_STREAM)
+
+    # 設置服務器退出端口立即釋放
+    http_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+
+    # 綁定服務器端口
+    http_server_socket.bind(('', 8888))
+
+    # 設置監聽(排隊等待連接的最大數量)
+    http_server_socket.listen(128)
+    i = 0
+    while True:
+        # 等待客戶端連接
+        new_socket, port= http_server_socket.accept()
+
+        handle_client_request(new_socket)
+```
+
+
+
+### 6-5. 靜態服務器-返回404頁面
+
++ 打開文件失敗時. 返回錯誤頁面
+
+```python
+import socket
+
+def handle_client_request(curr_socket: socket.socket):
+
+    result = curr_socket.recv(4096)
+    if result:
+        http_request = result.decode('utf-8')
+        print(http_request)
+        # 獲取請求的頁面
+        # 設置最大分割為2，只split到第2的空格
+        request_page = http_request.split(' ', maxsplit=2)[1]
+        
+        # 如果不指定頁面返回主頁面
+        if request_page == '/':
+            request_page = '/index.html'
+        
+        print(f'請求頁面{request_page}')
+
+        try:
+             # ***為了兼容圖片格式以二進制形式打開文件***
+            with open('./static' + request_page, 'rb') as file_name:
+                content = file_name.read()
+
+        # 代碼執行到此，說明請求文件不存在，返回404狀態信息
+        except Exception as e:
+            print(e)
+            with open('./static/error.html', 'rb') as file_name:
+                content = file_name.read()
+
+                 # 返回http response
+            response_line = 'HTTP/1.1 404 Not Found\r\n'
+
+            response_header = 'Server: PWS/1.0\r\n'
+
+            response_body = content
+        else: 
+            # 代碼執行到此，說明請求文件不存在，返回200狀態信息
+            # 返回http response
+            response_line = 'HTTP/1.1 200 OK\r\n'
+
+            response_header = 'Server: PWS/1.0\r\n'
+
+            response_body = content
+
+        finally:
+
+             # 二進制無法和字符串拼接，須將字符串轉成bytes二進制形式
+            send_data = (response_line + response_header + '\r\n').encode('utf-8') + response_body
+
+            curr_socket.send(send_data)
+            
+            curr_socket.close()
+
+
+if __name__ == '__main__':
+    # 設置ip4 + TCP傳輸協議
+    http_server_socket = socket.socket(family=socket.AF_INET,  type=socket.SOCK_STREAM)
+
+    # 設置服務器退出端口立即釋放
+    http_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+
+    # 綁定服務器端口
+    http_server_socket.bind(('', 8888))
+
+    # 設置監聽(排隊等待連接的最大數量)
+    http_server_socket.listen(128)
+    
+    while True:
+        # 等待客戶端連接
+        new_socket, port= http_server_socket.accept()
+
+        handle_client_request(new_socket)
+```
+
+
+
+### 6-6. 靜態服務器-多任務版
+
++ 使用threading.Tread為每一個用戶創建線程
+
+```python
+import socket
+import threading
+
+
+def handle_client_request(curr_socket: socket.socket):
+
+    result = curr_socket.recv(4096)
+    if result:
+        http_request = result.decode('utf-8')
+        print(http_request)
+        # 獲取請求的頁面
+        # 設置最大分割為2，只split到第2的空格
+        request_page = http_request.split(' ', maxsplit=2)[1]
+        
+        # 如果不指定頁面返回主頁面
+        if request_page == '/':
+            request_page = '/index.html'
+        
+        print(f'請求頁面{request_page}')
+
+        try:
+             # ***為了兼容圖片格式以二進制形式打開文件***
+            with open('./static' + request_page, 'rb') as file_name:
+                content = file_name.read()
+
+        # 代碼執行到此，說明請求文件不存在，返回404狀態信息
+        except Exception as e:
+            print(e)
+            with open('./static/error.html', 'rb') as file_name:
+                content = file_name.read()
+
+                 # 返回http response
+            response_line = 'HTTP/1.1 404 Not Found\r\n'
+
+            response_header = 'Server: PWS/1.0\r\n'
+
+            response_body = content
+        else: 
+            # 代碼執行到此，說明請求文件不存在，返回200狀態信息
+            # 返回http response
+            response_line = 'HTTP/1.1 200 OK\r\n'
+
+            response_header = 'Server: PWS/1.0\r\n'
+
+            response_body = content
+
+        finally:
+
+             # 二進制無法和字符串拼接，須將字符串轉成bytes二進制形式
+            send_data = (response_line + response_header + '\r\n').encode('utf-8') + response_body
+
+            curr_socket.send(send_data)
+            
+            curr_socket.close()
+
+
+if __name__ == '__main__':
+    # 設置ip4 + TCP傳輸協議
+    http_server_socket = socket.socket(family=socket.AF_INET,  type=socket.SOCK_STREAM)
+
+    # 設置服務器退出端口立即釋放
+    http_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+
+    # 綁定服務器端口
+    http_server_socket.bind(('', 8888))
+
+    # 設置監聽(排隊等待連接的最大數量)
+    http_server_socket.listen(128)
+    
+    while True:
+        # 等待客戶端連接
+        new_socket, port= http_server_socket.accept()
+        # 為每個用戶創建一個線程
+        task = threading.Thread(target=handle_client_request, args=(new_socket,))
+
+        # 設置守護主線程，當者主線程退出。子線程立即退出
+        task.setDaemon = True
+
+        task.start()
+```
+
+
+
+### 6-7. 靜態服務器-面向對象版本
+
++ `sys.argv`來實現執行腳本時，帶參數的功能。
+
+  
+
+```python
+import socket
+import threading
+import sys
+
+class HttpWebServer:
+    def __init__(self, port_num: int):
+
+        self._port_num = port_num
+
+        # 設置ip4 + TCP傳輸協議
+        self._http_server_socket = socket.socket(family=socket.AF_INET, type= socket.SOCK_STREAM)
+        
+        # 當服務器程序退出，端口立即釋放
+        self._http_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, True)
+
+        # 綁定端口號
+        self._http_server_socket.bind(('', self._port_num))
+
+        # 設置監聽(排隊等待連接的最大數量)
+        self._http_server_socket.listen(128)
+
+    def start(self):
+        while True:
+            # 等待客戶端連接
+            new_socket, port = self._http_server_socket.accept()
+            # 為每個用戶創建線程處理處理請求
+            task = threading.Thread(target=self.handle_client_request, args=(new_socket,))
+            
+            # 設置守護主線程，當主線程退出，子線程立即釋放
+            task.daemon = True
+
+            task.start()
+    
+    @staticmethod
+    def handle_client_request(curr_socket: socket.socket):
+        result = curr_socket.recv(4096)
+
+        if result:
+            client_request = result.decode('utf-8')
+            client_request_line = client_request.split(' ', maxsplit=2)[1]
+
+            # 不指定頁面時，返回主頁面
+            if client_request_line == '/':
+                client_request_line = '/index.html'
+
+            try:
+                with open('./static'+client_request_line,'rb') as file_name:
+                    content = file_name.read()
+            except Exception as e:
+                with open('./static/error.html','rb') as file_name:
+                    content = file_name.read()
+
+                # 響應行
+                reponse_line = 'HTTP/1.1 404 Not Found\r\n'
+                # 響應頭
+                reponse_header = 'Server: PWS/1.0\r\n'
+
+            else:
+                reponse_line = 'HTTP/1.1 200 OK\r\n'
+                reponse_header = 'Server: PWS/1.0\r\n'
+            finally:
+                # 響應體
+                reponse_body = content
+                reponse = (reponse_line + reponse_header + '\r\n').encode('utf-8') + reponse_body
+                curr_socket.send(reponse)
+        
+        curr_socket.close()
+
+
+if __name__ == '__main__':
+    
+    
+    server = HttpWebServer(int(sys.argv[1]) if len(sys.argv) >= 2 else 8888)
+
+    server.start()
+```
+
+
+
+範例: <span alt="solid"> Python07_http與靜態Web服務器</span>
 
 
 
